@@ -41,3 +41,4 @@ libcore.io.Posix->remove
 libcore.io.Posix->write
 
 
+test
