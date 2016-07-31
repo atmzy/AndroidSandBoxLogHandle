@@ -383,33 +383,40 @@ def compareDiff(log1, log2):
                 sameThreadName2.append(t)
             elif len(sameThreadName2) > 0:
                 break
-
-        count = min( len(sameThreadName1), len(sameThreadName2))
+        # 开始进行比较
+        count1 = len(sameThreadName1)
+        count2 = len(sameThreadName2)
         diff = 0
-        for i in range(count):
+        for i in range(count1):
+            max_diff = 0
+            for j in range(count2):
 
-            diff = levenshtein(sameThreadName1[i][1], sameThreadName2[i][1])
-            # import pdb
-            # pdb.set_trace()
-            # z = total_diff + apiNumberInThread1[count_of_local1 - count + i] * 1.0 / totalApi1 * diff
-            # total_diff = z
-            if len(sameThreadName2[i][1]) == 0: #表明log1中该进程没有任何行为
-                diff = 1.0
+                diff = levenshtein(sameThreadName1[i][1], sameThreadName2[j][1])
+                # import pdb
+                # pdb.set_trace()
+                # z = total_diff + apiNumberInThread1[count_of_local1 - count + i] * 1.0 / totalApi1 * diff
+                # total_diff = z
+                if len(sameThreadName2[i][1]) == 0:  # 表明log1中该进程没有任何行为
+                    diff = 1.0
+                if (diff > max_diff):
+                    max_diff = diff
 
-            total_diff_list.append((apiNumberInThread1[count_of_local1 - count + i], diff))
-            diff_list.append((threadName1, diff))
+
+            total_diff_list.append((apiNumberInThread1[count_of_local1 - count1 + i], max_diff))
+            diff_list.append((threadName1, max_diff))
 
 
         #处理没有对齐的
-        if len(sameThreadName1) > len(sameThreadName2):
-            while count < len(sameThreadName1):
-
-                diff_list.append((threadName1, diff))
-                count = count + 1
-        else:
-            while count < len(sameThreadName2):
-                diff_list.append((threadName1, diff))
-                count = count + 1
+        #突然发现好像没什么用了，先不要了
+        # if len(sameThreadName1) > len(sameThreadName2):
+        #     while count < len(sameThreadName1):
+        #
+        #         diff_list.append((threadName1, diff))
+        #         count = count + 1
+        # else:
+        #     while count < len(sameThreadName2):
+        #         diff_list.append((threadName1, diff))
+        #         count = count + 1
     total_diff = 0
     apinumber_list = [x[0] for x in total_diff_list]
     apinumber_sum = sum(apinumber_list)
