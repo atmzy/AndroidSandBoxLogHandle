@@ -91,7 +91,7 @@ def findClassNameAndTid(x):
     '''
     获取一条日志记录中的类名和ThreadId
     :param x: 日志记录字符串
-    :return: [classname, tid]
+    :return: classname@@tid
     '''
     try:
         dataDict = json.loads(x)
@@ -104,6 +104,44 @@ def findClassNameAndTid(x):
 
                 return vv
 
+def findFileOperationType(x):
+    '''
+    获取该条记录的操作类型
+    :param x:
+    :return:
+    '''
+    try:
+        dataDict = json.loads(x)
+    except Exception as ex:
+        print 'something wrong in logfile...'
+        return
+    for k, v in dataDict.items():
+        for kk, vv in v.items():
+            if kk == 'operType':
+                return vv
+
+def findFilePath(x):
+    try:
+        dataDict = json.loads(x)
+    except Exception as ex:
+        print 'something wrong in logfile...'
+        return
+    for k, v in dataDict.items():
+        for kk, vv in v.items():
+            if kk == 'filePath':
+                return vv
+
+def isFileOper(x):
+    try:
+        dataDict = json.loads(x)
+    except Exception as ex:
+        print 'something wrong in logfile...'
+        return
+    for k, v in dataDict.items():
+        if (k == 'fileOper'):
+            return True
+        else:
+            return False
 
 def findapi(x):
     '''
@@ -201,14 +239,29 @@ def dealLog(logpath, classes, apisDict):
 
     :param logpath: 一个log文件的路径
     :param classes: 所有类的list
-    :return: 包含类名和tid的list
+    :return: 以类名和tid为key，api编号list为value的list
     '''
+
+    fileOperDict = {}
     file = open(logpath)
 
     result = {}
     # thread_result = []
     line = file.readline()
     while line:
+        # 记录对同一个文件的同一个操作的是否第一次出现，如果不是就忽略
+        if (isFileOper(line)):
+            operType = findFileOperationType(line)
+            filePath = findFilePath(line)
+            if (not filePath in fileOperDict):
+                fileOperDict[filePath] = operType
+            else:
+                if (operType == fileOperDict[filePath]):
+                    line = file.readline()
+                    continue
+                else:
+                    fileOperDict[filePath] = operType
+
         x = findClassNameAndTid(line)
         y = findapi(line)
         if x and (y in apisDict) :
@@ -396,7 +449,7 @@ def compareDiff(log1, log2):
                 # pdb.set_trace()
                 # z = total_diff + apiNumberInThread1[count_of_local1 - count + i] * 1.0 / totalApi1 * diff
                 # total_diff = z
-                if len(sameThreadName2[i][1]) == 0:  # 表明log1中该进程没有任何行为
+                if len(sameThreadName2[j][1]) == 0:  # 表明log2中该进程没有任何行为
                     diff = 1.0
                 if (diff > max_diff):
                     max_diff = diff
@@ -455,7 +508,7 @@ def calcEachSimilarity(filtedLogPaths, logDir, resultPath, apisDict):
     #将各个日志文件中的api序列转化为对应的数字序列
 
     #for debug
-    if logDir.split('\\')[-1] != 'Microsoft_Remote_Desktop_7af47914.apk':
+    if logDir.split('\\')[-1] != 'weather-1Weather_Widget_Forecast_Radar_0cf3e2cd.apk':
         return
     #debug end
 
@@ -546,7 +599,7 @@ def calcEachSimilarity(filtedLogPaths, logDir, resultPath, apisDict):
 if __name__ == '__main__':
     # path_list = ['business', 'communication', 'education', 'entertainment', 'news_and_magazines', 'shopping',
     #              'social', 'tools', 'weather']
-    path_list = ['business']
+    path_list = ['weather']
     # rootPath = r'E:\android\paper related\anti-emulator\logs\ApkLog-malware-2'
     for a_path in path_list:
         rootPath =   os.path.join(r'E:\android\paper related\anti-emulator\logs\Apk-pure-3', a_path)
