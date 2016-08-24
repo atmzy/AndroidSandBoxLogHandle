@@ -43,7 +43,8 @@ def calcSimilarity(rootPath, apisPath):
             for log in path[2]:
                 if log.find('.log.filted') > 0:
                     filtedLogPaths.append(os.path.join(path[0],log))
-            calcEachSimilarity(filtedLogPaths, path[0], os.path.join(rootPath, 'result.txt'), apisDict)
+            if (len(filtedLogPaths) == 4):  # 只处理存在完整的四个日志的样本
+                calcEachSimilarity(filtedLogPaths, path[0], os.path.join(rootPath, 'result.txt'), apisDict)
 
 
 
@@ -508,9 +509,9 @@ def calcEachSimilarity(filtedLogPaths, logDir, resultPath, apisDict):
     #将各个日志文件中的api序列转化为对应的数字序列
 
     #for debug
-    if logDir.split('\\')[-1] != 'weather-1Weather_Widget_Forecast_Radar_0cf3e2cd.apk':
-        return
-    #debug end
+    # if logDir.split('\\')[-1] != 'weather-1Weather_Widget_Forecast_Radar_0cf3e2cd.apk':
+    #     return
+    #for debug end
 
     print 'playing with ' + repr(logDir.split('\\')[-1])
     # 获取apk文件路径
@@ -550,24 +551,27 @@ def calcEachSimilarity(filtedLogPaths, logDir, resultPath, apisDict):
     #api序列
     sortedApiList = []
     for i in range(len(apiNumerals)):
-        # 只比较没有伪装的模拟器与其他模拟器之间的相似度
-        if (i != 0):
-            continue
-        for j in range(len(apiNumerals)):
-            if j <= i:
-                continue
-            # print levenshtein(apiNumerals[i], apiNumerals[j]);
-            # diff = levenshtein(apiNumerals[i], apiNumerals[j])
-            # 比较的是后三个日志与第一个日志之间的区别， 顺序不可以颠倒
-            rtn = compareDiff(apiNumerals[j], apiNumerals[i])
-            diff = 0
-            if rtn:
-                diff = float(rtn[0])
-            # sortedApiList = sorted(apisDict.iteritems(), key=lambda d: d[1], reverse=False)
-            # apiStatic = staticApiNumberDiff(apiNumerals[i], apiNumerals[j], sortedApiList)
-            result[str((i + 1)) + ',' + str((j + 1))] = str(diff)
-            # staticResult[str(i + 1) + ',' + str(j + 1)] = apiStatic
-            staticResult[str(i + 1) + ',' + str(j + 1)] = str(rtn[1])
+        ## 只比较没有伪装的模拟器与其他模拟器之间的相似度
+        #  前两个为没有伪装，后两个为全部伪装，比较相同类别两个间的区别和第一个及第二个之间的区别
+        # if (i == 0) :
+            for j in range(len(apiNumerals)):
+                # if j <= i:
+                #     continue
+                if j <= i:
+                    continue
+                # print levenshtein(apiNumerals[i], apiNumerals[j]);
+                # diff = levenshtein(apiNumerals[i], apiNumerals[j])
+                # 比较的是后三个日志与第一个日志之间的区别， 顺序不可以颠倒
+                rtn = compareDiff(apiNumerals[j], apiNumerals[i])
+                diff = 0
+                if rtn:
+                    diff = float(rtn[0])
+                # sortedApiList = sorted(apisDict.iteritems(), key=lambda d: d[1], reverse=False)
+                # apiStatic = staticApiNumberDiff(apiNumerals[i], apiNumerals[j], sortedApiList)
+                result[str((i + 1)) + ',' + str((j + 1))] = str(diff)
+                # staticResult[str(i + 1) + ',' + str(j + 1)] = apiStatic
+                staticResult[str(i + 1) + ',' + str(j + 1)] = str(rtn[1])
+
 
     # 输出结果
     # 每个app单独的结果文件
@@ -595,6 +599,12 @@ def calcEachSimilarity(filtedLogPaths, logDir, resultPath, apisDict):
     resultFile.close()
     totalResultFile.close()
 
+def dealWithLogMain(rootPath, apisPath):
+    # for a_path in path_list:
+        # rootPath =   os.path.join(r'E:\android\paper related\anti-emulator\logs\Apk-pure-3', a_path)
+        # rootPath = r'E:\android\paper related\anti-emulator\logs\sanddroid-4\test-4'
+        # apisPath = r'E:\python\AndroidSandBoxLogHandle\apis-sanddroid-4.txt'
+        calcSimilarity(rootPath, apisPath)
 
 if __name__ == '__main__':
     # path_list = ['business', 'communication', 'education', 'entertainment', 'news_and_magazines', 'shopping',
@@ -602,9 +612,11 @@ if __name__ == '__main__':
     path_list = ['weather']
     # rootPath = r'E:\android\paper related\anti-emulator\logs\ApkLog-malware-2'
     for a_path in path_list:
-        rootPath =   os.path.join(r'E:\android\paper related\anti-emulator\logs\Apk-pure-3', a_path)
-        apisPath = r'E:\python\AndroidSandboxController\apis-apkpure-3.txt'
+        # rootPath =   os.path.join(r'E:\android\paper related\anti-emulator\logs\Apk-pure-3', a_path)
+        rootPath = r'E:\android\paper related\anti-emulator\logs\sanddroid-4\test-4'
+        apisPath = r'E:\python\AndroidSandBoxLogHandle\apis-sanddroid-4.txt'
         calcSimilarity(rootPath, apisPath)
+
     # diff = levenshtein('1234567890', '12345678')
     # diff = levenshtein('1234323','')
     #  print diff

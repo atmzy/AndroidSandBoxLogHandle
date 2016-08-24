@@ -51,28 +51,29 @@ def getlogs(rootpath):
     return logspath
 
 
-path = r'E:\android\paper related\anti-emulator\logs\Apk-pure-3'
-x = getlogs(path)
-print 'file number is: ' + str(len(x))
-cnt = 0
-for i in x:
-    cnt = cnt + 1
-    file = open(i, 'r')
-    line = file.readline()
-    while line:
-        findapi(line)
+def findApiList(path, apiFilePath):
+    # path = r'E:\android\paper related\anti-emulator\logs\sanddroid-4\test-4'
+    x = getlogs(path)
+    print 'file number is: ' + str(len(x))
+    cnt = 0
+    for i in x:
+        cnt = cnt + 1
+        file = open(i, 'r')
         line = file.readline()
-    print 'finished file: ' + str(cnt)
-#
-# apiFile = open('apis.txt', 'wb')
-# for api in apis:
-#     apiFile.write(api + os.linesep)
-# apiFile.close()
-api_list = []
-for api in apis:
-    api_list.append(api)
-api_list.sort()
-apiFile = open('apis-apkpure-3.txt', 'wb')
-for api in api_list:
-    apiFile.write(api + os.linesep)
-apiFile.close()
+        while line:
+            findapi(line)
+            line = file.readline()
+        print 'finished file: ' + str(cnt)
+    #
+    # apiFile = open('apis.txt', 'wb')
+    # for api in apis:
+    #     apiFile.write(api + os.linesep)
+    # apiFile.close()
+    api_list = []
+    for api in apis:
+        api_list.append(api)
+    api_list.sort()
+    apiFile = open(apiFilePath, 'wb')
+    for api in api_list:
+        apiFile.write(api + os.linesep)
+    apiFile.close()
