@@ -494,8 +494,6 @@ def compareDiff(log1, log2):
 
 
 
-
-
 @time_me
 def calcEachSimilarity(filtedLogPaths, logDir, resultPath, apisDict):
     '''
@@ -546,8 +544,10 @@ def calcEachSimilarity(filtedLogPaths, logDir, resultPath, apisDict):
 
     #相似度比较结果
     result = {}
+    result_revs = {}
     #api统计结果
     staticResult = {}
+    staticResult_revs = {}
     #api序列
     sortedApiList = []
     for i in range(len(apiNumerals)):
@@ -559,9 +559,7 @@ def calcEachSimilarity(filtedLogPaths, logDir, resultPath, apisDict):
                 #     continue
                 if j <= i:
                     continue
-                # print levenshtein(apiNumerals[i], apiNumerals[j]);
-                # diff = levenshtein(apiNumerals[i], apiNumerals[j])
-                # 比较的是后三个日志与第一个日志之间的区别， 顺序不可以颠倒
+
                 rtn = compareDiff(apiNumerals[j], apiNumerals[i])
                 diff = 0
                 if rtn:
@@ -572,23 +570,38 @@ def calcEachSimilarity(filtedLogPaths, logDir, resultPath, apisDict):
                 # staticResult[str(i + 1) + ',' + str(j + 1)] = apiStatic
                 staticResult[str(i + 1) + ',' + str(j + 1)] = str(rtn[1])
 
+                # 处理两个日志反过来顺序比较的结果
+                rtn = compareDiff(apiNumerals[i], apiNumerals[i])
+                diff = 0
+                if rtn:
+                    diff = float(rtn[0])
+                result_revs[str((i + 1)) + ',' + str((j + 1))] = str(diff)
+                staticResult_revs[str(i + 1) + ',' + str(j + 1)] = str(rtn[1])
+
 
     # 输出结果
     # 每个app单独的结果文件
     resultFile = open(os.path.join(logDir, 'result.txt'), 'wb')
+
     # 所有测试app的结果文件，保存在本次运行的根目录下
     totalResultFile = open(resultPath, 'a+')
     resultStr = ''
+
     # 按key排序
     keys = result.keys()
     keys.sort()
     result2 = [result[key] for key in keys]
 
+    keys2 = result_revs.keys()
+    keys2.sort()
+    result_revs2 = [result_revs[key] for key in keys2]
+
+
     i = 0
     for k in keys:
-        resultFile.write(str(k) + ':' + str(result2[i]) + ' | ' + staticResult[k] + os.linesep)
+        resultFile.write(str(k) + ':' + str( max(result2[i], result_revs2[i])) + ' | ' + staticResult[k] + os.linesep)
         # resultFile.write(str(k) + ':' + str(result2[i]) + os.linesep)
-        resultStr = resultStr + ' ' + str(result2[i])
+        resultStr = resultStr + ' ' + str(max(result2[i], result_revs2[i]))
         i = i + 1
     # for k,v in result.items():
     #     resultFile.write(str(k) + ':' + str(v) + ' | ' + staticResult[k] + os.linesep)
